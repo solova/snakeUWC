@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>index.html</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="css/styles.css" type="text/css">
+        <!-- <link rel="stylesheet" href="css/snake.css" type="text/css"> -->
+
+    </head>
+    <body>
+
+    <div id="snake-game">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span9">
+                    <canvas id="snake-board" width="800" height="600"></canvas>
+                </div>
+                <div class="span3">
+                    <h5>Гра у змійку</h5>
+                    <div class="alert fade in">
+                        <button type="button" class="close" data-dismiss="alert">×</button>
+                        <strong>Вітаю гравця.</strong> Це модифікація відомої гри &laquo;змійка&raquo;. Тобі треба не тільки вирастити якомога довшу змію, але й збирати замість яблук букви, та сполучати їх у слова. Кожна зібрана буква поміщується у чергу що ти бачиш нижче. Якщо змія виходить за межі ігрового майданчика, кусає саму себе чи накопичує більш ніж 20 букв у черзі &mdash; гра припиняється. Кожна зібрана буква дає тобі 1 очко. Кожне слово дає по 10 очок за букву. Якщо тобі все зрозуміло й ти готовий до гри &mdash; просто закрий це повідомлення.
+                    </div>
+                    <div class="well">
+                        <p>Змія рухається зі швидкістю <span id="snake-info-speed">0</span> у.о.</p>
+                        <p>Змія рухається під кутом <span id="snake-info-degree">0</span> &deg;</p>
+                        <h3 id="snake-info-scores">0</h3>
+                    </div>
+                    <div id="snake-letters" class="well">
+                        <span class="badge badge-info">К</span>
+                        <span class="badge badge-info">А</span>
+                        <span class="badge badge-info">Н</span>
+                        <span class="badge badge-info">А</span>
+                        <span class="badge badge-info">Т</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" charset="utf-8" src="http://yandex.st/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/lodash.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/supersnake.js"></script>
+
+
+    </body>
+</html>    
