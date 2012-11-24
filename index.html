@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+        <title>index.html</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="css/styles.css" type="text/css">
+
+    </head>
+    <body>
+
+    <div id="snake-game">
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span9">
+                    <canvas id="snake-board" height="600" width="800"></canvas>
+                </div>
+                <div class="span3">
+                    <h5>Гра у змійку</h5>
+                    <div id="help" class="alert fade in">
+                        <button type="button" class="close" data-dismiss="alert">×</button>
+                        <strong>Вітаю гравця.</strong> Це модифікація відомої гри &laquo;змійка&raquo;. Тобі треба не тільки вирастити якомога довшу змію, але й збирати замість яблук букви, та сполучати їх у слова. Кожна зібрана буква поміщується у чергу що ти бачиш нижче. Якщо змія виходить за межі ігрового майданчика, кусає саму себе чи накопичує більш ніж 20 букв у черзі &mdash; гра припиняється. Кожна зібрана буква дає тобі 1 очко. Кожне слово дає по 10 очок за букву. Керувати треба стрілочками на клавіатурі. <code>Space</code> надає прискорення. Якщо тобі все зрозуміло й ти готова чи готовий до гри &mdash; просто закрий це повідомлення.
+                    </div>
+                    <div id="snake-words" class="well">
+                    </div>
+                    <div id="snake-letters" class="well">
+                        <span class="badge badge-info" title="Це не баг, це - жарт">N</span>
+                        <span class="badge badge-info" title="Це не баг, це - жарт">U</span>
+                        <span class="badge badge-info" title="Це не баг, це - жарт">L</span>
+                        <span class="badge badge-info" title="Це не баг, це - жарт">L</span>
+                    </div>
+                    <div id="snake-info" class="well">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" charset="utf-8" src="js/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/lodash.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/dict.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/snake.js"></script>
+
+
+    </body>
+</html>    
