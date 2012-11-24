@@ -1,1 +1,1 @@
-![ScreenShot](https://raw.github.com/xelios20/snakeUWC/master/public/temp/demo.png)
+![ScreenShot](https://raw.github.com/xelios20/snakeUWC/master/temp/demo.png)
