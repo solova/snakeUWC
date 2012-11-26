@@ -1,4 +1,5 @@
 var snakegame = (function () {
+
     var canvas = null;
 
     //http://code.google.com/p/topheman-squares/source/browse/trunk/js/requestAnimFrame.js
@@ -17,7 +18,7 @@ var snakegame = (function () {
         39: 'right',
         40: 'down'
     };
-    var snake = null;
+    var snake = {};
 
     //можливі кольори літер
     var colors = ['Red', 'Blue', 'DarkBlue', 'Orange', 'Purple', 'Brown', 'Maroon', 'Green'];
@@ -115,7 +116,6 @@ var snakegame = (function () {
                 var tail = _.last(queue, l);
                 var first = tail[0];
                 var word = tail.join('');
-                console.log("search", first, word);
                 if ((!_.isUndefined(window.dict[first])) && _.indexOf(window.dict[first], word, true) >= 0) {
                     userwords.push(word);
                     snake.scores += 10 * (word.length);
@@ -143,9 +143,6 @@ var snakegame = (function () {
         var time = (new Date()).getTime();
         if ((time - snake.updated) > 1000 / snake.speed) {
             var head = snake.segments[snake.segments.length - 1];
-            var neck = snake.segments[snake.segments.length - 2];
-
-            //var direction = snake.direction;
 
             snake.direction.x = Math.cos(snake.degree) * snake.speed / 20;
             snake.direction.y = Math.sin(snake.degree) * snake.speed / 20;
@@ -244,12 +241,12 @@ var snakegame = (function () {
      */
     var drawSnake = function (context) {
         var segments = snake.segments;
-        var tail = segments[0];
-        context.beginPath();
-        context.moveTo(tail.x, tail.y);
 
-        for (var n = 1; n < segments.length; n++) {
-            var segment = segments[n];
+        context.beginPath();
+        context.moveTo(segments[0].x, segments[0].y);
+
+        for (var i = 1; i < segments.length; i++) {
+            var segment = segments[i];
             context.lineTo(segment.x, segment.y);
         }
 
@@ -269,32 +266,24 @@ var snakegame = (function () {
         userwords = [];
         queue = [];
 
-        var x0 = canvas.width / 2;
-        var y0 = canvas.height / 2;
-        snake = {
+        _.extend(snake, {
             active: 0,
-            updated: 0,
-            len: 5,
-            speed: 50,
-            direction: {
-                x: 1,
-                y: 0
-            },
-            degree: 0,
-            scores: 0,
             color: 'blue',
-            segments: [{
-                x: x0,
-                y: y0
-            }]
-        };
+            degree: 0,
+            direction: { x: 1, y: 0 },
+            len: 5,
+            scores: 0,
+            segments: [{ x: canvas.width / 2, y: canvas.height / 2}],
+            speed: 50,
+            updated: 0
+        });
 
-        $(window).trigger("resize");
+        
 
         var initLetters = 5;
-        while (initLetters--) addRandomLetter();
-
-
+        while (initLetters--) {
+            addRandomLetter();
+        }
 
         $("#snake-words").empty().hide();
         $("#snake-letters").empty().hide();
@@ -325,6 +314,20 @@ var snakegame = (function () {
         window.setTimeout(function(){snake.speed-=50;}, 1000);
     }, 1000);
 
+    var toleft = function(value){
+        snake.degree -= value;
+        if (snake.degree < -2 * Math.PI) { snake.degree = 0; }
+        $("#dval").text(snake.degree);
+    };
+
+    var toright = function(value){
+        snake.degree += value;
+        if (snake.degree > 2 * Math.PI) { snake.degree = 0; }
+        $("#dval").text(snake.degree);
+    };
+
+    var autoturn = null;
+
     var events = {
         'keydown': _.throttle(function (event) {
             if (typeof (keys[event.keyCode]) !== 'undefined') {
@@ -333,22 +336,38 @@ var snakegame = (function () {
                 switch(keys[event.keyCode]){
                     case 'down':
                     case 'right':
-                        snake.degree += Math.PI / 15;
-                        if (snake.degree > 2 * Math.PI) snake.degree = 0;
-                        $("#dval").text(snake.degree);
+                        toright(Math.PI / 15);
                         break;
                     case 'up':
                     case 'left':
-                        snake.degree -= Math.PI / 15;
-                        if (snake.degree < -2 * Math.PI) snake.degree = 0;
-                        $("#dval").text(snake.degree);
+                        toleft(Math.PI / 15);
                         break;
                     case 'space':
                         boost();
                         break;
                 }
             }
-        }, 100)
+        }, 100),
+        'touchstart': function(event){
+            if (autoturn){
+                clearInterval(autoturn);
+            }
+            
+            var middle = $(window).width() / 2;
+
+            autoturn = setInterval(function(){
+                if (event.changedTouches[0].pageX < middle){
+                    toleft(Math.PI / 100);
+                }else{
+                    toright(Math.PI / 100);
+                }
+            });
+        },
+        'touchend': function(event){
+            if (autoturn){
+                clearInterval(autoturn);
+            }
+        }
     };
 
     /**
@@ -360,12 +379,19 @@ var snakegame = (function () {
 
         $(window).resize(function () {
             canvas.width = $("canvas").outerWidth();
-            canvas.height = $("canvas").outerHeight();
-            snake.field = {
-                width: canvas.width,
-                height: canvas.height
-            };
+            canvas.height = window.innerHeight - 10;
+            $(canvas).data("width", canvas.width);
+            $(canvas).data("height", canvas.height);
+            console.log("snake", snake);
+            _.extend(snake, { 
+                field: {
+                    width: canvas.width,
+                    height: canvas.height
+                }
+            });
+
         });
+        $(window).trigger("resize");
 
 
         for (var e in events) {
@@ -374,9 +400,11 @@ var snakegame = (function () {
 
         $("#help").bind("close", start);
 
+        var exports = {
+            'left'  : toleft,
+            'right' : toright
+        };
+
+        return exports;
     };
 })();
-
-$(function () {
-    var s = new snakegame("snake-board");
-});
