@@ -334,26 +334,34 @@ var snakegame = (function () {
         }
     };
 
-    var events = {
-        'keydown': _.throttle(function (event) {
-            if (typeof (keys[event.keyCode]) !== 'undefined') {
-                event.preventDefault(); //disable scrolling
+    KeyboardController({
+        32: function() { boost(); },
+        37: function() { moves.left(Math.PI / 30) },
+        38: function() { moves.left(Math.PI / 30) },
+        39: function() { moves.right(Math.PI / 30) },
+        40: function() { moves.right(Math.PI / 30) }
+    }, 10);
 
-                switch(keys[event.keyCode]){
-                    case 'down':
-                    case 'right':
-                        moves.right(Math.PI / 15);
-                        break;
-                    case 'up':
-                    case 'left':
-                        moves.left(Math.PI / 15);
-                        break;
-                    case 'space':
-                        boost();
-                        break;
-                }
-            }
-        }, 100),
+    var events = {
+        // 'keydown': _.throttle(function (event) {
+        //     if (typeof (keys[event.keyCode]) !== 'undefined') {
+        //         event.preventDefault(); //disable scrolling
+
+        //         switch(keys[event.keyCode]){
+        //             case 'down':
+        //             case 'right':
+        //                 moves.right(Math.PI / 15);
+        //                 break;
+        //             case 'up':
+        //             case 'left':
+        //                 moves.left(Math.PI / 15);
+        //                 break;
+        //             case 'space':
+        //                 boost();
+        //                 break;
+        //         }
+        //     }
+        // }, 100),
         'touchstart': function(event){
             var middle = $(window).width() / 2;
             autoaction = (event.changedTouches[0].pageX < middle) ? 'left':'right';
