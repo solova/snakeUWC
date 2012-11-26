@@ -34,6 +34,7 @@ var snakegame = (function () {
 
     //літери алфавіту, за частотою вживання
     var alphabet = ['О', 'Н', 'А', 'І', 'И', 'Т', 'В', 'Р', 'Е', 'С', 'К', 'Д', 'У', 'Л', 'П', 'М', 'Я', 'З', 'Ь', 'Г', 'Б', 'Ч', 'Х', 'Й', 'Ц', 'Ю', 'Є', 'Ї', 'Ж', 'Ф', 'Ш', 'Щ'];
+    var autoaction = null;
 
     /**
      * функція перевірки обїектів на зіткнення
@@ -198,7 +199,13 @@ var snakegame = (function () {
         context.clearRect(0, 0, canvas.width, canvas.height);
         drawSnake(context);
         drawLetters(context);
+
+
         requestAnimFrame(function () {
+
+            if (autoaction){
+                moves[autoaction](Math.PI/50);
+            }
             animate();
         });
     };
@@ -314,19 +321,18 @@ var snakegame = (function () {
         window.setTimeout(function(){snake.speed-=50;}, 1000);
     }, 1000);
 
-    var toleft = function(value){
-        snake.degree -= value;
-        if (snake.degree < -2 * Math.PI) { snake.degree = 0; }
-        $("#dval").text(snake.degree);
+    var moves = {
+        left : function(value){
+            snake.degree -= value;
+            if (snake.degree < -2 * Math.PI) { snake.degree = 0; }
+            $("#dval").text(snake.degree);
+        },
+        right : function(value){
+            snake.degree += value;
+            if (snake.degree > 2 * Math.PI) { snake.degree = 0; }
+            $("#dval").text(snake.degree);
+        }
     };
-
-    var toright = function(value){
-        snake.degree += value;
-        if (snake.degree > 2 * Math.PI) { snake.degree = 0; }
-        $("#dval").text(snake.degree);
-    };
-
-    var autoturn = null;
 
     var events = {
         'keydown': _.throttle(function (event) {
@@ -336,11 +342,11 @@ var snakegame = (function () {
                 switch(keys[event.keyCode]){
                     case 'down':
                     case 'right':
-                        toright(Math.PI / 15);
+                        moves.right(Math.PI / 15);
                         break;
                     case 'up':
                     case 'left':
-                        toleft(Math.PI / 15);
+                        moves.left(Math.PI / 15);
                         break;
                     case 'space':
                         boost();
@@ -349,24 +355,11 @@ var snakegame = (function () {
             }
         }, 100),
         'touchstart': function(event){
-            if (autoturn){
-                clearInterval(autoturn);
-            }
-            
             var middle = $(window).width() / 2;
-
-            autoturn = setInterval(function(){
-                if (event.changedTouches[0].pageX < middle){
-                    toleft(Math.PI / 100);
-                }else{
-                    toright(Math.PI / 100);
-                }
-            });
+            autoaction = (event.changedTouches[0].pageX < middle) ? 'left':'right';
         },
-        'touchend': function(event){
-            if (autoturn){
-                clearInterval(autoturn);
-            }
+        'touchend' : function(event){
+            autoaction = null;
         }
     };
 
@@ -400,10 +393,7 @@ var snakegame = (function () {
 
         $("#help").bind("close", start);
 
-        var exports = {
-            'left'  : toleft,
-            'right' : toright
-        };
+        var exports = {};
 
         return exports;
     };
