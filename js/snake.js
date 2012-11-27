@@ -24,13 +24,23 @@ var snakegame = (function () {
     var colors = ['Red', 'Blue', 'DarkBlue', 'Orange', 'Purple', 'Brown', 'Maroon', 'Green'];
 
     //underscore-шаблони
-    var infoTemplate = '<h3 id="snake-info-scores"><%=scores%> (рекорд &mdash; <%=record%>)</h3>' + '<p>Змія рухається зі швидкістю <span id="snake-info-speed"><%=speed%></span> у.о.</p>' + '<p>Змія рухається під кутом <span id="snake-info-degree"><%=degree%></span> &deg;</p>';
+    var infoTemplate = '<h3 id="snake-info-scores"><%=scores%> (рекорд &mdash; <%=record%>)</h3>'
+                     + '<p>Змія рухається зі швидкістю <span id="snake-info-speed"><%=speed%></span> у.о.</p>'
+                     + '<p>Змія рухається під кутом <span id="snake-info-degree"><%=degree%></span> &deg;</p>'
+                     + '<p><%=fps%> кадрів/с</p>';
     var queueElement = '<span class="badge badge-info"><%=letter%></span>';
     var wordElement  = '<span class="label label-success"><%=word%></span>';
 
+    function mp3_support(){
+        var a = document.createElement('audio');
+        return !!(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''));
+    }
+    var ext = 'ogg';
+    if (mp3_support()) ext = 'mp3'; 
+
     var sounds = [];
     for (var i = 1; i<=18; i++) {
-        sounds.push(new Audio("sounds/sound" + i + ".mp3"));
+        sounds.push(new Audio("sounds/sound" + i + "." + ext));
     }
 
     var letters   = [];
@@ -72,12 +82,12 @@ var snakegame = (function () {
 
     var specialfn = {
         '↩': function(){
-            if (queue.length > 1){
+            if (queue.length >= 1){
                 queue.pop();
             }
         },
         '⇆': function(){
-            if (queue.length > 2){
+            if (queue.length >= 2){
                 var l1 = [queue.pop()];
                 var l2 = [queue.pop()];
                 queue.push(l1);
@@ -106,9 +116,25 @@ var snakegame = (function () {
         }
         values.degree = (360 - values.degree * 180 / Math.PI).toFixed(2);
         values.record = getRecord();
-        $("#snake-info").html(_.template(infoTemplate, values)).show();
+        
+        var thisLoop = new Date().getTime(); 
+        
+        fps.time += (thisLoop - fps.last);
+        fps.last  = thisLoop;
+        fps.frames++;
 
-        $("#snake-letters").empty();
+        if (fps.time > 1000){
+            fps.value = Math.ceil(fps.time / fps.frames);
+            fps.frames = 0;
+            fps.time = 0;
+        }
+
+        values.fps = fps.value;
+
+        document.getElementById("snake-info").innerHTML = _.template(infoTemplate, values);
+        document.getElementById("snake-info").style.display = "block";
+
+        document.getElementById("snake-letters").innerHTML = "";
         if (queue.length > 0) {
             var elements = [];
             _.each(queue, function (item) {
@@ -116,10 +142,11 @@ var snakegame = (function () {
                     letter: item
                 }));
             }, this);
-            $("#snake-letters").append(elements).slideDown();
+            document.getElementById("snake-letters").innerHTML = elements.join('');
+            document.getElementById("snake-letters").style.display = "block";
         }
 
-        $("#snake-words").empty();
+        document.getElementById("snake-words").innerHTML = "";
         if (userwords.length > 0) {
             var snakewords = [];
             _.each(userwords, function (item) {
@@ -127,8 +154,8 @@ var snakegame = (function () {
                     word: item
                 }));
             }, this);
-            $("#snake-words").append(snakewords).slideDown();
-
+            document.getElementById("snake-words").innerHTML = snakewords.join('');
+            document.getElementById("snake-words").style.display = "block";
         }
     };
 
@@ -240,6 +267,13 @@ var snakegame = (function () {
 
     // console.time("animate");
 
+    var fps = {
+        last   : new Date().getTime(),
+        time   : 0,
+        frames : 0,
+        value  : 0
+    }
+
     /**
      * loop-функція
      */
@@ -256,7 +290,6 @@ var snakegame = (function () {
 
 
         requestAnimFrame(function () {
-
             animate();
         });
     };
@@ -338,7 +371,7 @@ var snakegame = (function () {
             color: 'blue',
             degree: 0,
             direction: { x: 1, y: 0 },
-            len: 125,
+            len: 50,
             scores: 0,
             segments: [{ x: canvas.width / 2, y: canvas.height / 2}],
             speed: 20,
@@ -431,26 +464,27 @@ var snakegame = (function () {
 
         canvas = document.getElementById(elem);
 
-        $(window).resize(function () {
-            canvas.width = $("canvas").outerWidth();
-            canvas.height = window.innerHeight - 10;
-            $(canvas).data("width", canvas.width);
-            $(canvas).data("height", canvas.height);
+
+        window.addEventListener('resize', resizeCanvas, false);
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
             _.extend(snake, {
                 field: {
                     width: canvas.width,
                     height: canvas.height
                 }
             });
-
-        });
-        $(window).trigger("resize");
-
+        }
+        resizeCanvas();
+        
 
         for (var e in events) {
             document.addEventListener(e, events[e], false);
         }
-
+        //document.getElementById("help").addEventListener("close", start);
         $("#help").bind("close", start);
 
         var exports = {};
