@@ -28,13 +28,18 @@ var snakegame = (function () {
     var queueElement = '<span class="badge badge-info"><%=letter%></span>';
     var wordElement  = '<span class="label label-success"><%=word%></span>';
 
+    var sounds = [];
+    for (var i = 1; i<=18; i++) {
+        sounds.push(new Audio("sounds/sound" + i + ".mp3"));
+    }
+
     var letters   = [];
     var userwords = [];
     var queue     = [];
 
     //літери алфавіту, за частотою вживання
     var alphabet = ['О', 'Н', 'А', 'І', 'И', 'Т', 'В', 'Р', 'Е', 'С', 'К', 'Д', 'У', 'Л', 'П', 'М', 'Я', 'З', 'Ь', 'Г', 'Б', 'Ч', 'Х', 'Й', 'Ц', 'Ю', 'Є', 'Ї', 'Ж', 'Ф', 'Ш', 'Щ'];
-    var autoaction = null;
+    var angle = 0;
 
     /**
      * функція перевірки обїектів на зіткнення
@@ -145,14 +150,15 @@ var snakegame = (function () {
         if ((time - snake.updated) > 1000 / snake.speed) {
             var head = snake.segments[snake.segments.length - 1];
 
-            snake.direction.x = Math.cos(snake.degree) * snake.speed / 20;
-            snake.direction.y = Math.sin(snake.degree) * snake.speed / 20;
+            snake.direction.x = Math.cos(snake.degree);
+            snake.direction.y = Math.sin(snake.degree);
             var new_segment = {
                 x: head.x + snake.direction.x,
                 y: head.y + snake.direction.y
             };
 
             if ((new_segment.x < 0) || (new_segment.x > snake.field.width) || (new_segment.y > snake.field.height) || (new_segment.y < 0)) {
+                console.log("out of field");
                 gameover();
                 return;
             }
@@ -163,6 +169,7 @@ var snakegame = (function () {
                 }
             }, this);
             if (touches > 7){ //selfkill
+                console.log("selfkill");
                 gameover();
             }
 
@@ -189,10 +196,15 @@ var snakegame = (function () {
         }
     };
 
+    console.time("animate");
+
     /**
      * loop-функція
      */
     var animate = function () {
+        console.timeEnd("animate");
+        console.time("animate");
+
         if (snake.status === 0) return;
         var context = canvas.getContext("2d");
         update();
@@ -203,12 +215,11 @@ var snakegame = (function () {
 
         requestAnimFrame(function () {
 
-            if (autoaction){
-                moves[autoaction](Math.PI/50);
-            }
             animate();
         });
     };
+
+    window.sounds = sounds;
 
     /**
      * функція додавання літери до з'їдених
@@ -219,12 +230,16 @@ var snakegame = (function () {
             snake.color = letters[index].color;
             queue.push(letters[index].value);
             if (queue.size>20) {
+                console.log("qsize");
                 gameover();
             }
             snake.scores++;
             snake.speed++;
-            snake.len += 5;
+            snake.len++;
             changes = true;
+            
+            sounds[_.random(0,17)].play();
+
             letters.splice(index, 1);
         }, this);
 
@@ -237,8 +252,10 @@ var snakegame = (function () {
      */
     var drawLetters = function (context) {
         _.each(letters, function (letter, index) {
-            context.fillStyle = letter.color;
-            context.font = "bold 16px Arial";
+            context.fillStyle    = letter.color;
+            context.font         = "bold 16px Arial";
+            context.textBaseline = 'middle';
+            context.textAlign    = 'center';
             context.fillText(letter.value, letter.x, letter.y);
         }, this);
     };
@@ -281,7 +298,7 @@ var snakegame = (function () {
             len: 5,
             scores: 0,
             segments: [{ x: canvas.width / 2, y: canvas.height / 2}],
-            speed: 50,
+            speed: 100,
             updated: 0
         });
 
@@ -321,53 +338,46 @@ var snakegame = (function () {
         window.setTimeout(function(){snake.speed-=50;}, 1000);
     }, 1000);
 
-    var moves = {
-        left : function(value){
-            snake.degree -= value;
-            if (snake.degree < -2 * Math.PI) { snake.degree = 0; }
-            $("#dval").text(snake.degree);
-        },
-        right : function(value){
-            snake.degree += value;
-            if (snake.degree > 2 * Math.PI) { snake.degree = 0; }
-            $("#dval").text(snake.degree);
-        }
+    var move = function(value){
+        snake.degree += value;
+        if (snake.degree < -2 * Math.PI) { snake.degree += 2 * Math.PI; }
+        else if (snake.degree > 2 * Math.PI) { snake.degree -= 2 * Math.PI; }
     };
 
-    KeyboardController({
-        32: function() { boost(); },
-        37: function() { moves.left(Math.PI / 30) },
-        38: function() { moves.left(Math.PI / 30) },
-        39: function() { moves.right(Math.PI / 30) },
-        40: function() { moves.right(Math.PI / 30) }
-    }, 10);
+    window.setInterval(function(){
+        if (angle) {
+            move(angle)
+        }
+    }, 50);
 
     var events = {
-        // 'keydown': _.throttle(function (event) {
-        //     if (typeof (keys[event.keyCode]) !== 'undefined') {
-        //         event.preventDefault(); //disable scrolling
-
-        //         switch(keys[event.keyCode]){
-        //             case 'down':
-        //             case 'right':
-        //                 moves.right(Math.PI / 15);
-        //                 break;
-        //             case 'up':
-        //             case 'left':
-        //                 moves.left(Math.PI / 15);
-        //                 break;
-        //             case 'space':
-        //                 boost();
-        //                 break;
-        //         }
-        //     }
-        // }, 100),
+        'keydown': function (event) {
+            if (typeof (keys[event.keyCode]) !== 'undefined') {
+                event.preventDefault(); //disable scrolling
+                switch(keys[event.keyCode]){
+                    case 'down':
+                    case 'right':
+                        angle = Math.PI / 15;
+                        break;
+                    case 'up':
+                    case 'left':
+                        angle = -Math.PI / 15;
+                        break;
+                    case 'space':
+                        boost();
+                        break;
+                }
+            }
+        },
+        'keyup' : function(){
+            angle = 0;
+        },
         'touchstart': function(event){
             var middle = $(window).width() / 2;
-            autoaction = (event.changedTouches[0].pageX < middle) ? 'left':'right';
+            angle = (event.changedTouches[0].pageX < middle) ? (-Math.PI/15):(Math.PI/15);
         },
         'touchend' : function(event){
-            autoaction = null;
+            angle = 0;
         }
     };
 
@@ -383,8 +393,7 @@ var snakegame = (function () {
             canvas.height = window.innerHeight - 10;
             $(canvas).data("width", canvas.width);
             $(canvas).data("height", canvas.height);
-            console.log("snake", snake);
-            _.extend(snake, { 
+            _.extend(snake, {
                 field: {
                     width: canvas.width,
                     height: canvas.height
