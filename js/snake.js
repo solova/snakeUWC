@@ -201,7 +201,7 @@ var snakegame = (function () {
             };
 
             if ((new_segment.x < 0) || (new_segment.x > snake.field.width) || (new_segment.y > snake.field.height) || (new_segment.y < 0)) {
-                console.log("out of field");
+                // console.log("out of field");
                 gameover();
                 return;
             }
@@ -227,7 +227,7 @@ var snakegame = (function () {
                 var tail = _.last(snake.segments, 2);
                 for (var i = 0; i < snake.segments.length - 2; i++) {
                     if (is_intersect(tail[0].x,tail[0].y,tail[1].x,tail[1].y,snake.segments[i].x,snake.segments[i].y,snake.segments[i+1].x,snake.segments[i+1].y)){
-                        console.log("selfkill");
+                        // console.log("selfkill");
                         gameover();
                     }
                 }
@@ -238,14 +238,14 @@ var snakegame = (function () {
         //}
     };
 
-    console.time("animate");
+    // console.time("animate");
 
     /**
      * loop-функція
      */
     var animate = function () {
-        console.timeEnd("animate");
-        console.time("animate");
+        // console.timeEnd("animate");
+        // console.time("animate");
 
         if (snake.status === 0) return;
         var context = canvas.getContext("2d");
