@@ -39,7 +39,20 @@ var snakegame = (function () {
 
     //літери алфавіту, за частотою вживання
     var alphabet = ['О', 'Н', 'А', 'І', 'И', 'Т', 'В', 'Р', 'Е', 'С', 'К', 'Д', 'У', 'Л', 'П', 'М', 'Я', 'З', 'Ь', 'Г', 'Б', 'Ч', 'Х', 'Й', 'Ц', 'Ю', 'Є', 'Ї', 'Ж', 'Ф', 'Ш', 'Щ'];
+    var special = ['↩','⇆', '↶', '↷','><'];
+
     var angle = 0;
+
+    /**
+     * @return bool
+     */
+    function is_intersect(ax1,ay1,ax2,ay2,bx1,by1,bx2,by2){
+       var v1 = (bx2-bx1)*(ay1-by1)-(by2-by1)*(ax1-bx1);
+       var v2 = (bx2-bx1)*(ay2-by1)-(by2-by1)*(ax2-bx1);
+       var v3 = (ax2-ax1)*(by1-ay1)-(ay2-ay1)*(bx1-ax1);
+       var v4 = (ax2-ax1)*(by2-ay1)-(ay2-ay1)*(bx2-ax1);
+       return (v1*v2<0) && (v3*v4<0);
+    }
 
     /**
      * функція перевірки обїектів на зіткнення
@@ -55,6 +68,31 @@ var snakegame = (function () {
      */
     var getRecord = function(){
         return localStorage.getItem("record") || 0;
+    };
+
+    var specialfn = {
+        '↩': function(){
+            if (queue.length > 1){
+                queue.pop();
+            }
+        },
+        '⇆': function(){
+            if (queue.length > 2){
+                var l1 = [queue.pop()];
+                var l2 = [queue.pop()];
+                queue.push(l1);
+                queue.push(l2);
+            }
+        },
+        '↶': function(){
+            move(-Math.PI/2)
+        },
+        '↷': function(){
+            move(Math.PI/2)
+        },
+        '><': function(){
+            snake.len = Math.max(Math.ceil(snake.len*0.8), 10);
+        }
     };
 
     /**
@@ -97,16 +135,21 @@ var snakegame = (function () {
     var addRandomLetterFunc = null; //handle для setInterval
     /**
      * функція додавання літери на гральне поле
+       @TODO: refactoring
      */
     var addRandomLetter = function () {
 
-        var letterIndex = _.random(alphabet.length - 1);
-        var colorIndex = _.random(colors.length - 1);
+        var preset = _.union(alphabet, special);
 
-        letterIndex = Math.floor(letterIndex * Math.random()); // збільшуємо частоту літер, що в початку масиву
+        var letterIndex = _.random(preset.length - 1);
+        var colorIndex  = _.random(colors.length - 1);
+        
+        if (letterIndex < alphabet.length){ //not special
+            letterIndex = Math.floor(letterIndex * Math.random()); // збільшуємо частоту літер, що в початку масиву
+        }
 
         letters.push({
-            value: alphabet[letterIndex],
+            value: preset[letterIndex],
             x: Math.random() * snake.field.width * 0.95 + snake.field.width * 0.025,
             y: Math.random() * snake.field.height * 0.95 + snake.field.height * 0.025,
             color: colors[colorIndex]
@@ -147,11 +190,11 @@ var snakegame = (function () {
      */
     var update = function () {
         var time = (new Date()).getTime();
-        if ((time - snake.updated) > 1000 / snake.speed) {
+        //if ((time - snake.updated) > 1000 / snake.speed) {
             var head = snake.segments[snake.segments.length - 1];
 
-            snake.direction.x = Math.cos(snake.degree);
-            snake.direction.y = Math.sin(snake.degree);
+            snake.direction.x = snake.speed/10 * Math.cos(snake.degree);
+            snake.direction.y = snake.speed/10 * Math.sin(snake.degree);
             var new_segment = {
                 x: head.x + snake.direction.x,
                 y: head.y + snake.direction.y
@@ -162,16 +205,6 @@ var snakegame = (function () {
                 gameover();
                 return;
             }
-            var touches = 0;
-            _.each(snake.segments, function(segment){
-                if (hittest(segment, new_segment)) {
-                    touches++;
-                }
-            }, this);
-            if (touches > 7){ //selfkill
-                console.log("selfkill");
-                gameover();
-            }
 
             var remove = [];
             _.each(letters, function (letter, index) {
@@ -179,7 +212,6 @@ var snakegame = (function () {
                     remove.push(index);
                 }
             });
-
 
             if (!_.isEmpty(remove)) {
                 eatLetters(remove);
@@ -191,9 +223,19 @@ var snakegame = (function () {
                 snake.segments.shift();
             }
 
+            if (snake.segments.length > 3){
+                var tail = _.last(snake.segments, 2);
+                for (var i = 0; i < snake.segments.length - 2; i++) {
+                    if (is_intersect(tail[0].x,tail[0].y,tail[1].x,tail[1].y,snake.segments[i].x,snake.segments[i].y,snake.segments[i+1].x,snake.segments[i+1].y)){
+                        console.log("selfkill");
+                        gameover();
+                    }
+                }
+            }
+
             snake.updated = time;
             info();
-        }
+        //}
     };
 
     console.time("animate");
@@ -219,8 +261,6 @@ var snakegame = (function () {
         });
     };
 
-    window.sounds = sounds;
-
     /**
      * функція додавання літери до з'їдених
      */
@@ -228,17 +268,20 @@ var snakegame = (function () {
         var changes = false;
         _.each(indexes, function (index) {
             snake.color = letters[index].color;
-            queue.push(letters[index].value);
-            if (queue.size>20) {
-                console.log("qsize");
-                gameover();
-            }
+            sounds[_.random(sounds.length-1)].play();
             snake.scores++;
             snake.speed++;
             snake.len++;
             changes = true;
             
-            sounds[_.random(0,17)].play();
+            if (_.indexOf(special, letters[index].value) !== -1){
+                specialfn[letters[index].value]();
+            }else{
+                queue.push(letters[index].value);
+                if (queue.size>20) {
+                    gameover();
+                }
+            }
 
             letters.splice(index, 1);
         }, this);
@@ -295,10 +338,10 @@ var snakegame = (function () {
             color: 'blue',
             degree: 0,
             direction: { x: 1, y: 0 },
-            len: 5,
+            len: 125,
             scores: 0,
             segments: [{ x: canvas.width / 2, y: canvas.height / 2}],
-            speed: 100,
+            speed: 20,
             updated: 0
         });
 
@@ -346,9 +389,9 @@ var snakegame = (function () {
 
     window.setInterval(function(){
         if (angle) {
-            move(angle)
+            move(angle);
         }
-    }, 50);
+    }, 25);
 
     var events = {
         'keydown': function (event) {
@@ -357,11 +400,11 @@ var snakegame = (function () {
                 switch(keys[event.keyCode]){
                     case 'down':
                     case 'right':
-                        angle = Math.PI / 15;
+                        angle = Math.PI / 18;
                         break;
                     case 'up':
                     case 'left':
-                        angle = -Math.PI / 15;
+                        angle = -Math.PI / 18;
                         break;
                     case 'space':
                         boost();
@@ -373,8 +416,8 @@ var snakegame = (function () {
             angle = 0;
         },
         'touchstart': function(event){
-            var middle = $(window).width() / 2;
-            angle = (event.changedTouches[0].pageX < middle) ? (-Math.PI/15):(Math.PI/15);
+            var middle = snake.field.width / 2;
+            angle = (event.changedTouches[0].pageX < middle) ? (-Math.PI/18):(Math.PI/18);
         },
         'touchend' : function(event){
             angle = 0;
