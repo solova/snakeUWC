@@ -468,8 +468,8 @@ var snakegame = (function () {
         window.addEventListener('resize', resizeCanvas, false);
 
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth - 10 * 2; //minus margins
+            canvas.height = window.innerHeight - 10 * 2; //minus margins
 
             _.extend(snake, {
                 field: {
@@ -485,7 +485,7 @@ var snakegame = (function () {
             document.addEventListener(e, events[e], false);
         }
         //document.getElementById("help").addEventListener("close", start);
-        $("#help").bind("close", start);
+        $("#splash").bind("hidden", start);
 
         var exports = {};
 

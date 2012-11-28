@@ -16,6 +16,7 @@
         <script type="text/javascript" charset="utf-8">
         <!--
         $(document).ready(function() {
+            $("#splash").modal('show');
             var snake = new snakegame("snake-board");
         });
         -->
@@ -24,35 +25,35 @@
     </head>
     <body>
 
-    <div id="snake-game">
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span9">
-                    <canvas id="snake-board"></canvas>
-                </div>
-                <div class="span3">
-                    <h5>Гра у змійку</h5>
-                    <div id="help" class="alert fade in">
-                        <button type="button" class="close" data-dismiss="alert">×</button>
-                        <p><strong>Вітаю гравця.</strong> Це модифікація відомої гри &laquo;змійка&raquo;. Тобі треба не тільки вирастити якомога довшу змію, але й збирати замість яблук букви, та сполучати їх у слова. Кожна зібрана буква поміщується у чергу що ти бачиш нижче. Якщо змія виходить за межі ігрового майданчика, кусає саму себе чи накопичує більш ніж 20 букв у черзі &mdash; гра припиняється. Кожна зібрана буква дає тобі 1 очко. Кожне слово дає по 10 очок за букву. Керувати треба стрілочками на клавіатурі. <code>Space</code> надає прискорення. </p>
+    <div id="splash" class="modal hide" tabindex="-1">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="splashLabel">Гра у змійку</h3>
+        </div>
+        <div class="modal-body">
+            <p><strong>Вітаю гравця.</strong> Це модифікація відомої гри &laquo;змійка&raquo;. Тобі треба не тільки вирастити якомога довшу змію, але й збирати замість яблук букви, та сполучати їх у слова. Кожна зібрана буква поміщується у чергу що ти бачиш нижче. Якщо змія виходить за межі ігрового майданчика, кусає саму себе чи накопичує більш ніж 20 букв у черзі &mdash; гра припиняється. Кожна зібрана буква дає тобі 1 очко. Кожне слово дає по 10 очок за букву. Керувати треба стрілочками на клавіатурі. <code>Space</code> надає прискорення. </p>
 
-                        <p>Користувачі, що запустили гру на пристрої з сенсорним екраном можуть змінювати напрям змійки торкаючись лівої або правої половини екрану.</p>
+            <p>Користувачі, що запустили гру на пристрої з сенсорним екраном можуть змінювати напрям змійки торкаючись лівої або правої половини екрану.</p>
 
-                        <p>Якщо тобі все зрозуміло й ти готова чи готовий до гри &mdash; просто закрий це повідомлення.</p>
-                        <button class="btn btn-primary btn-block" data-dismiss="alert">До гри!</button>
-                    </div>
-                    <div id="snake-words" class="well">
-                    </div>
-                    <div id="snake-letters" class="well">
-                        <span class="badge badge-info" title="Це не баг, це - жарт">N</span>
-                        <span class="badge badge-info" title="Це не баг, це - жарт">U</span>
-                        <span class="badge badge-info" title="Це не баг, це - жарт">L</span>
-                        <span class="badge badge-info" title="Це не баг, це - жарт">L</span>
-                    </div>
-                    <div id="snake-info" class="well">
-                    </div>
-                </div>
-            </div>
+            <p>Якщо тобі все зрозуміло й ти готова чи готовий до гри &mdash; просто закрий це повідомлення.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary btn-block" data-dismiss="modal">До гри!</button>
+        </div>
+    </div>
+
+    <canvas id="snake-board"></canvas>
+
+    <div class="controls">
+        <div id="snake-words" class="well">
+        </div>
+        <div id="snake-letters" class="well">
+            <span class="badge badge-info" title="Це не баг, це - жарт">N</span>
+            <span class="badge badge-info" title="Це не баг, це - жарт">U</span>
+            <span class="badge badge-info" title="Це не баг, це - жарт">L</span>
+            <span class="badge badge-info" title="Це не баг, це - жарт">L</span>
+        </div>
+        <div id="snake-info" class="well">
         </div>
     </div>
 

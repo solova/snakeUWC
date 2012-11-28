@@ -20,6 +20,9 @@ $out = "var dict = {\n";
 
 $owords = array();
 
+$letters = array();
+
+
 foreach($f as $line){
 
 	$line = mb_trim($line);
@@ -33,11 +36,11 @@ foreach($f as $line){
 	foreach($words as $word){
 		//if (mb_strlen($word)>5) continue;
 		//if (mb_strpos($word, "'")) continue;
+		
 		$owords[$first][] = '"'.$word.'"';
 	}
 }
 
-$letters = array();
 
 foreach($owords as $key => $oword){
 	$out .= "'".$key."'";
