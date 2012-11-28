@@ -39,6 +39,7 @@ var snakegame = (function () {
     var ext = 'ogg';
     if (mp3_support()) ext = 'mp3'; 
 
+    //Pack: Eating Apple Crunches by Koops
     var sounds = [];
     for (var i = 1; i<=18; i++) {
         sounds.push(new Audio("sounds/sound" + i + "." + ext));
@@ -220,9 +221,11 @@ var snakegame = (function () {
         var time = (new Date()).getTime();
         //if ((time - snake.updated) > 1000 / snake.speed) {
             var head = snake.segments[snake.segments.length - 1];
+            var timeshift = time - snake.updated;
 
-            snake.direction.x = snake.speed/10 * Math.cos(snake.degree);
-            snake.direction.y = snake.speed/10 * Math.sin(snake.degree);
+            snake.direction.x = snake.speed * timeshift * Math.cos(snake.degree) / 150;
+            snake.direction.y = snake.speed * timeshift * Math.sin(snake.degree) / 150;
+
             var new_segment = {
                 x: head.x + snake.direction.x,
                 y: head.y + snake.direction.y
@@ -376,7 +379,7 @@ var snakegame = (function () {
             scores: 0,
             segments: [{ x: canvas.width / 2, y: canvas.height / 2}],
             speed: 20,
-            updated: 0
+            updated: (new Date()).getTime()
         });
 
         
