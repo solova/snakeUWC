@@ -10,7 +10,7 @@ canvas {
 	display: block;
 }
 
-.controls{
+#controls{
 	position: absolute;
 	right: 10px;
 	top: 35px;
