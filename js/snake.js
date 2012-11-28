@@ -25,6 +25,7 @@ var snakegame = (function () {
 
     //underscore-шаблони
     var infoTemplate = '<h3 id="snake-info-scores"><%=scores%> (рекорд &mdash; <%=record%>)</h3>'
+                     + '<p>Змія має довжину <%=len%></p>'
                      + '<p>Змія рухається зі швидкістю <span id="snake-info-speed"><%=speed%></span> у.о.</p>'
                      + '<p>Змія рухається під кутом <span id="snake-info-degree"><%=degree%></span> &deg;</p>'
                      + '<p><%=fps%> кадрів/с</p>';
@@ -110,7 +111,7 @@ var snakegame = (function () {
        @return int
      */
     var info = function () {
-        var values    = _.pick(snake, 'scores', 'degree', 'speed');
+        var values    = _.pick(snake, 'scores', 'degree', 'speed', 'len');
         while (values.degree < 0) {
             values.degree += 2 * Math.PI;
         }
