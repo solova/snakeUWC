@@ -26,8 +26,14 @@ SnakeGame = (function (_) {
         scores: 0
     };
 
+    var statisticsBlock;
+    var wordsBlock;
+    var lettersBlock;
+
     var fps = [];
     var pressed_keys = [];
+    var words = [];
+    var chars = [];
 
     var KEY_SPACE = 32;
     var KEY_LEFT  = 37;
@@ -53,7 +59,7 @@ SnakeGame = (function (_) {
         canvas.style.top = canvasMargin + "px";
     }
 
-    function update(timeshift) {
+    function checkkeys(timeshift) {
         if (pressed_keys.length > 0){
             _.each(pressed_keys, function(key){
                 switch(key){
@@ -82,9 +88,26 @@ SnakeGame = (function (_) {
     function eat(){
         state.scores++;
 
-        sound.playrand();
+        sound.getrand().play();
         snake.len++;
         snake.speed++;
+    }
+
+    function checkWords() {
+        var tail, first, word;
+        if (chars.length > 1) {
+            for (var n = Math.min(chars.length, 8); n >= 2; n--) {
+                tail  = _.last(chars, n);
+                first = tail[0];
+                word  = tail.join('');
+                if ((!_.isUndefined(window.dict[first])) && _.indexOf(window.dict[first], word, true) >= 0) {
+                    words.push(word);
+                    state.scores += 10 * (word.length);
+                    chars = _.initial(chars, n);
+                    return;
+                }
+            }
+        }
     }
 
     function animate() {
@@ -94,10 +117,13 @@ SnakeGame = (function (_) {
         var time = (new Date()).getTime();
         var timeshift = time - snake.updated;
 
-        update(timeshift);
+        checkkeys(timeshift);
 
         fps.push(1000 / timeshift);
-        while(fps.length > 100) fps.shift();
+        while(fps.length > 100) {
+            fps.shift();
+        }
+
         var fps_sum = _.reduce(fps, function(memo, num){ return memo + num; }, 0);
 
         var dx = snake.speed * timeshift * Math.cos(state.degree) / 150;
@@ -110,21 +136,32 @@ SnakeGame = (function (_) {
         var remove = [];
         _.each(letters, function(letter,index){
             if (letter.distanceTo(snake) < 10){
-                console.log(letter.value);
-                remove.push(letter);
+                chars.push(letter.value);
                 eat();
+                checkWords();
+                remove.push(letter);
             }
             letter.draw(context);
         }, this);
         letters = _.difference(letters, remove);
 
-        //if (activeState) {
-            scoreText = "Score: <span>" + Math.round(state.scores) + "</span>";
-            scoreText += " Speed: <span>" + Math.round(snake.speed) + "</span>";
-            scoreText += " FPS: <span>" + Math.round(fps_sum/fps.length) + "</span>";
-            scoreText += " Len: <span>" + Math.round(snake.len) + "</span>";
-            statisticsBlock.innerHTML = scoreText;
-        //}
+        var scoreText = "Score: <span>" + Math.round(state.scores) + "</span>";
+        scoreText += " Speed: <span>" + Math.round(snake.speed) + "</span>";
+        scoreText += " FPS: <span>" + Math.round(fps_sum/fps.length) + "</span>";
+        scoreText += " Len: <span>" + Math.round(snake.len) + "</span>";
+        statisticsBlock.innerHTML = scoreText;
+
+        if (chars.length > 0){
+            lettersBlock.innerHTML = '<span class="badge">' + chars.join('</span><span class="badge">') + '</span>';
+        }else{
+            lettersBlock.innerHTML = '';
+        }
+
+        if (words.length > 0){
+            wordsBlock.innerHTML = '<span class="badge">' + words.join('</span><span class="badge">') + '</span>';
+        }else{
+            wordsBlock.innerHTML = '';
+        }
 
         requestAnimFrame(function () {
             animate();
@@ -132,20 +169,21 @@ SnakeGame = (function (_) {
     }
 
     this.init = function () {
-        console.log("INIT");
-        canvas = document.getElementById("snake-board");
+        window.console.log("INIT");
+        canvas          = document.getElementById("snake-board");
         statisticsBlock = document.getElementById("statistics");
+        wordsBlock      = document.getElementById("words");
+        lettersBlock    = document.getElementById("letters");
+
         if (canvas && canvas.getContext) {
             context = canvas.getContext("2d");
             window.addEventListener("resize", resizeFunction, false);
             window.addEventListener("keydown",function(event){
-                console.log("KD", pressed_keys, _.indexOf(pressed_keys, event.keyCode));
                 if (_.indexOf(pressed_keys, event.keyCode) === -1){
                     pressed_keys.push(event.keyCode);
                 }
             }, false);
             window.addEventListener("keyup",function(event){
-                console.log("KU");
                 pressed_keys = _.without(pressed_keys, event.keyCode);
             }, false);
             

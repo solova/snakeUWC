@@ -1,3 +1,13 @@
+// function Stack(){
+//     this.items = [];
+// }
+// Stack.prototype.add = function(value){
+//     this.items.push(add);
+// }
+// Stack.prototype.shift = function(){
+//     this.items.
+// }
+
 function Point(x, y) {
     this.position = {
         x: x,
@@ -102,7 +112,7 @@ function Sound(){
     }
 }
 
-Sound.prototype.playrand = function(){
+Sound.prototype.getrand = function(){
     var audioIndex = _.random(this.sounds.length - 1);
-    this.sounds[audioIndex].play();
+    return this.sounds[audioIndex];
 };
