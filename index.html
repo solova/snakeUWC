@@ -5,27 +5,25 @@
         <meta name="viewport" content="width=device-width, user-scalable=no" />
         
         <title>index.html</title>
-        <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+
         <link rel="stylesheet" href="css/styles.css" type="text/css">
 
-        <script type="text/javascript" charset="utf-8" src="js/jquery.min.js"></script>
+
         <script type="text/javascript" charset="utf-8" src="js/lodash.min.js"></script>
-        <script type="text/javascript" charset="utf-8" src="js/bootstrap.min.js"></script>
+
         <script type="text/javascript" charset="utf-8" src="js/dict.js"></script>
-        <script type="text/javascript" charset="utf-8" src="js/snake.js?v=6"></script>
+        <script type="text/javascript" charset="utf-8" src="js/snake2.js"></script>
         <script type="text/javascript" charset="utf-8">
         <!--
-        $(document).ready(function() {
-            $("#splash").modal('show');
-            var snake = new snakegame("snake-board");
-        });
-        -->
+        document.addEventListener( "DOMContentLoaded", function(){
+            SnakeGame.init();
+        }, false );
         </script>
 
     </head>
     <body>
 
-    <div id="splash" class="modal hide" tabindex="-1">
+<!--     <div id="splash" class="modal hide" tabindex="-1">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
             <h3 id="splashLabel">Гра у змійку</h3>
@@ -40,10 +38,10 @@
         <div class="modal-footer">
             <button class="btn btn-primary btn-block" data-dismiss="modal">До гри!</button>
         </div>
-    </div>
+    </div> -->
 
     <canvas id="snake-board"></canvas>
-
+    <div id="status" style="position: absolute"></div>
     <div id="controls">
         <div id="snake-words" class="well"></div>
         <div id="snake-letters" class="well"></div>

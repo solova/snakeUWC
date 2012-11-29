@@ -1,59 +1,268 @@
+function Point(x, y) {
+    this.position = {
+        x: x,
+        y: y
+    };
+}
+Point.prototype.distanceTo = function (obj) {
+    var x = obj.position.x - this.position.x;
+    var y = obj.position.y - this.position.y;
+    return Math.sqrt(x * x + y * y)
+};
+
+function Snake() {
+    this.position  = { x: 50, y: 50};
+    this.tail      = [];
+    this.color     = 'blue';
+    this.len       = 10;
+    this.speed     = 64;
+    this.updated   =  (new Date()).getTime();
+};
+Snake.prototype = new Point();
+Snake.prototype.move = function(dx, dy){
+    var pos = this.position;
+    this.tail.push({
+        x : this.position.x,
+        y : this.position.y
+    });
+    this.position = { x : this.position.x + dx, y : this.position.y + dy };
+    while(this.tail.length > this.len){
+        this.tail.shift();
+    }
+};
+
+Snake.prototype.draw = function(context){
+    context.beginPath();
+    context.moveTo(this.position.x, this.position.y);
+
+    for (var i = this.tail.length - 1; i >= 0; i--) {
+        context.lineTo(this.tail[i].x, this.tail[i].y);
+    }
+
+    context.lineWidth = 7;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.strokeStyle = this.color;
+    context.stroke();
+};
+Snake.prototype.boost = function(){
+    var that = this;
+    this.speed += 20;
+    window.setTimeout(function(){that.speed -= 20}, 1000);
+};
+
+function Letter(x, y) {
+    var alphabet = ['О', 'Н', 'А', 'І', 'И', 'Т', 'В', 'Р', 'Е', 'С', 'К', 'Д', 'У', 'Л', 'П', 'М', 'Я', 'З', 'Ь', 'Г', 'Б', 'Ч', 'Х', 'Й', 'Ц', 'Ю', 'Є', 'Ї', 'Ж', 'Ф', 'Ш', 'Щ'];
+    var special = ['↩','⇆', '↶', '↷','><'];
+    var colors = ['Red', 'Blue', 'DarkBlue', 'Orange', 'Purple', 'Brown', 'Maroon', 'Green'];
+
+    var colorIndex  = _.random(colors.length - 1);
+
+    if (Math.random() > 0.9){
+        this.value = special[_.random(special.length-1)];
+    }else{
+        var letterIndex = _.random(alphabet.length - 1);
+        letterIndex = Math.floor(letterIndex * Math.random());
+        this.value = alphabet[letterIndex];
+    }
+
+    this.color = colors[colorIndex];
+    this.position = {
+        x: x,
+        y: y
+    };
+
+}
+
+Letter.prototype = new Point();
+Letter.prototype.draw = function(context){
+    context.fillStyle    = this.color;
+    context.font         = "bold 16px Arial";
+    context.textBaseline = 'middle';
+    context.textAlign    = 'center';
+    context.fillText(this.value, this.position.x, this.position.y);
+};
+
+function Sound(){
+    var audio = document.createElement('audio');
+    var ext;
+    if (!!(audio.canPlayType && audio.canPlayType('audio/mpeg;').replace(/no/, ''))){
+        ext = 'mp3';
+    }else{
+        ext = 'ogg';
+    }
+     
+    //Pack: Eating Apple Crunches by Koops
+    this.sounds = [];
+    for (var i = 1; i<=18; i++) {
+        this.sounds.push(new Audio("sounds/sound" + i + "." + ext));
+    }
+}
+
+Sound.prototype.playrand = function(){
+    var audioIndex = _.random(this.sounds.length - 1);
+    this.sounds[audioIndex].play();
+};
+
+
 SnakeGame = new function () {
+
+    //http://code.google.com/p/topheman-squares/source/browse/trunk/js/requestAnimFrame.js
+    var requestAnimFrame = (function (callback) {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (callback) {
+            window.setTimeout(callback, 1000 / 60);
+        };
+    })();
+    //
+
     var browser = navigator.userAgent.toLowerCase();
     var isMobile = (browser.indexOf("android") != -1) || (browser.indexOf("iphone") != -1) || (browser.indexOf("ipad") != -1);
-    var gameWidth = isMobile ? window.innerWidth : 900;
-    var gameHeight = isMobile ? window.innerHeight : 550;
+    var canvasMargin = 10; //px
+    var gameWidth = window.innerWidth - canvasMargin * 2;
+    var gameHeight = window.innerHeight - canvasMargin * 2;
+
+
+
     var canvas;
     var context;
-    var statusBlock;
-    var messageBlock;
-    var titleBlock;
-    var startBtnBlock;
-    var w = [];
-    var y = [];
-    var H = [];
-    var playerObject;
-    var freeWidth = (window.innerWidth - gameWidth);
-    var freeHeight = (window.innerHeight - gameHeight);
-    var isMouseDown = false;
-    var activeState = false;
-    var C = 0;
-    var startTime = 0;
-    var s = {
-        x: -1.3,
-        y: 1
+
+    var snake;
+    var sound = new Sound();
+
+    var state = {
+        active: 0,
+        degree: 0,
+        scores: 0
     };
-    var E = 1;
+
+    var fps = [];
+    var pressed_keys = [];
+
+    var letters = [];
+    setInterval(function(){
+        var x = _.random(canvas.width - canvasMargin * 2) + canvasMargin;
+        var y = _.random(canvas.height - canvasMargin * 2) + canvasMargin;
+        letters.push(new Letter(x, y));
+    }, 5000);
+
+    function resizeFunction() {
+        gameWidth = window.innerWidth - canvasMargin * 2;
+        gameHeight = window.innerHeight - canvasMargin * 2;
+        canvas.width = gameWidth;
+        canvas.height = gameHeight;
+
+        canvas.style.position = "absolute";
+        canvas.style.left = canvasMargin + "px";
+        canvas.style.top = canvasMargin + "px";
+    }
+
+    function update() {
+        _.each(pressed_keys, function(key){
+            switch(key){
+                case 32:
+                    snake.boost();
+                    break;
+                case 37:
+                    state.degree -= Math.PI / 32;
+                    break;
+                case 39:
+                    state.degree += Math.PI / 32;
+                    break;
+            }
+        });
+
+        if(state.degree > 2*Math.PI) state.degree -= 2*Math.PI;
+        if(state.degree < 2*Math.PI) state.degree += 2*Math.PI;
+    };
+
+    setInterval(update, 16);
+
+    function eat(){
+        state.scores++;
+
+        sound.playrand();
+        snake.len++;
+        snake.speed++;
+    }
+
+    function animate() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        //console.log("animate");
+
+        var time = (new Date()).getTime();
+        var timeshift = time - snake.updated;
+
+        fps.push(1000 / timeshift);
+        while(fps.length > 100) fps.shift();
+        var fps_sum = _.reduce(fps, function(memo, num){ return memo + num; }, 0);
+
+        var dx = snake.speed * timeshift * Math.cos(state.degree) / 512;
+        var dy = snake.speed * timeshift * Math.sin(state.degree) / 512;
+
+        snake.move(dx, dy);
+        snake.draw(context);
+        snake.updated = time;
+
+        var remove = [];
+        _.each(letters, function(letter,index){
+            if (letter.distanceTo(snake) < 10){
+                console.log(letter.value);
+                remove.push(letter);
+                eat();
+            }
+            letter.draw(context);
+        }, this);
+        letters = _.difference(letters, remove);
+
+        //if (activeState) {
+            scoreText = "Score: <span>" + Math.round(state.scores) + "</span>";
+            scoreText += " FPS: <span>" + Math.round(fps_sum/fps.length) + "</span>";
+            statusBlock.innerHTML = scoreText;
+        //}
+
+        requestAnimFrame(function () {
+            animate();
+        });
+    }
 
     this.init = function () {
-        canvas = document.getElementById("world");
+        console.log("INIT");
+        canvas = document.getElementById("snake-board");
         statusBlock = document.getElementById("status");
-        messageBlock = document.getElementById("message");
-        titleBlock = document.getElementById("title");
-        startBtnBlock = document.getElementById("startButton");
+        // messageBlock = document.getElementById("message");
+        // titleBlock = document.getElementById("title");
+        // startBtnBlock = document.getElementById("startButton");
         if (canvas && canvas.getContext) {
             context = canvas.getContext("2d");
-            var addEventListenerFn = function (N, M, O) {
-                document.addEventListener(N, M, O)
-            };
-            addEventListenerFn("mousemove", c, false);
-            addEventListenerFn("mousedown", l, false);
-            addEventListenerFn("mouseup", I, false);
-            canvas.addEventListener("touchstart", i, false);
-            addEventListenerFn("touchmove", q, false);
-            addEventListenerFn("touchend", v, false);
+            // var addEventListenerFn = function (N, M, O) {
+            //     document.addEventListener(N, M, O)
+            // };
+            // addEventListenerFn("mousemove", c, false);
+            // addEventListenerFn("mousedown", l, false);
+            // addEventListenerFn("mouseup", I, false);
+            // canvas.addEventListener("touchstart", i, false);
+            // addEventListenerFn("touchmove", q, false);
+            // addEventListenerFn("touchend", v, false);
             window.addEventListener("resize", resizeFunction, false);
-            startBtnBlock.addEventListener("click", j, false);
-            playerObject = new Player();
+            window.addEventListener("keydown",function(event){
+                console.log("KD", pressed_keys, _.indexOf(pressed_keys, event.keyCode));
+                if (_.indexOf(pressed_keys, event.keyCode) === -1){
+                    pressed_keys.push(event.keyCode);
+                }
+            }, false);
+            window.addEventListener("keyup",function(event){
+                console.log("KU");
+                pressed_keys = _.without(pressed_keys, event.keyCode);
+            }, false);
+            
+            //startBtnBlock.addEventListener("click", j, false);
+            //playerObject = new Player();
+            snake = new Snake();
             resizeFunction();
-            if (isMobile) {
-                canvas.style.border = "none";
-                s.x *= 2;
-                s.y *= 2;
-                setInterval(animate, 1000 / 20)
-            } else {
-                setInterval(animate, 1000 / 60)
-            }
+
+            //TODO: replace to request animation frame
+            //setInterval(animate, isMobile?500:200);
+            animate();
         }
     };
 
@@ -106,28 +315,7 @@ SnakeGame = new function () {
     function v(event) {
         isMouseDown = false
     }
-    function resizeFunction() {
-        gameWidth = isMobile ? window.innerWidth : 900;
-        gameHeight = isMobile ? window.innerHeight : 550;
-        canvas.width = gameWidth;
-        canvas.height = gameHeight;
-        var horMargin = (window.innerWidth - gameWidth) * 0.5;
-        var verMargin = (window.innerHeight - gameHeight) * 0.5;
-        canvas.style.position = "absolute";
-        canvas.style.left = horMargin + "px";
-        canvas.style.top = verMargin + "px";
-        if (isMobile) {
-            messageBlock.style.left = "0px";
-            messageBlock.style.top = "0px";
-            statusBlock.style.left = "0px";
-            statusBlock.style.top = "0px"
-        } else {
-            messageBlock.style.left = horMargin + 6 + "px";
-            messageBlock.style.top = verMargin + 200 + "px";
-            statusBlock.style.left = horMargin + 6 + "px";
-            statusBlock.style.top = verMargin + 6 + "px"
-        }
-    }
+
     function g(O, M, L) {
         var N = 10 + (Math.random() * 15);
         while (--N >= 0) {
@@ -142,130 +330,7 @@ SnakeGame = new function () {
             H.push(particleObject)
         }
     }
-    function animate() {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        var P = {
-            x: s.x * E,
-            y: s.y * E
-        };
-        var O, M, N, L;
-        if (activeState) {
-            E += 0.0008;
-            pp = playerObject.clonePosition();
-            playerObject.p.x += (freeWidth - playerObject.p.x) * 0.13;
-            playerObject.p.y += (freeHeight - playerObject.p.y) * 0.13;
-            C += 0.4 * E;
-            C += playerObject.distanceTo(pp) * 0.1;
-            playerObject.boost = Math.max(playerObject.boost - 1, 0);
-            if (playerObject.boost > 0 && (playerObject.boost > 100 || playerObject.boost % 3 != 0)) {
-                context.beginPath();
-                context.fillStyle = "#167a66";
-                context.strokeStyle = "#00ffcc";
-                context.arc(playerObject.p.x, playerObject.p.y, playerObject.s * 2, 0, Math.PI * 2, true);
-                context.fill();
-                context.stroke()
-            }
-            playerObject.trail.push(new Point(playerObject.p.x, playerObject.p.y));
-            context.beginPath();
-            context.strokeStyle = "#648d93";
-            context.lineWidth = 2;
-            for (O = 0, N = playerObject.trail.length; O < N; O++) {
-                p = playerObject.trail[O];
-                context.lineTo(p.p.x, p.p.y);
-                p.p.x += P.x;
-                p.p.y += P.y
-            }
-            context.stroke();
-            context.closePath();
-            if (playerObject.trail.length > 60) {
-                playerObject.trail.shift()
-            }
-            context.beginPath();
-            context.fillStyle = "#8ff1ff";
-            context.arc(playerObject.p.x, playerObject.p.y, playerObject.s / 2, 0, Math.PI * 2, true);
-            context.fill()
-        }
-        if (activeState && (playerObject.p.x < 0 || playerObject.p.x > gameWidth || playerObject.p.y < 0 || playerObject.p.y > gameHeight)) {
-            g(playerObject.p, 10);
-            gameOver()
-        }
-        for (O = 0; O < w.length; O++) {
-            p = w[O];
-            if (activeState) {
-                if (playerObject.boost > 0 && p.distanceTo(playerObject.p) < ((playerObject.s * 4) + p.s) * 0.5) {
-                    g(p.p, 10);
-                    w.splice(O, 1);
-                    O--;
-                    C += 10;
-                    continue
-                } else {
-                    if (p.distanceTo(playerObject.p) < (playerObject.s + p.s) * 0.5) {
-                        g(playerObject.p, 10);
-                        gameOver()
-                    }
-                }
-            }
-            context.beginPath();
-            context.fillStyle = "#ff0000";
-            context.arc(p.p.x, p.p.y, p.s / 2, 0, Math.PI * 2, true);
-            context.fill();
-            p.p.x += P.x * p.f;
-            p.p.y += P.y * p.f;
-            if (p.p.x < 0 || p.p.y > gameHeight) {
-                w.splice(O, 1);
-                O--
-            }
-        }
-        for (O = 0; O < y.length; O++) {
-            p = y[O];
-            if (p.distanceTo(playerObject.p) < (playerObject.s + p.s) * 0.5 && activeState) {
-                playerObject.boost = 300;
-                for (M = 0; M < w.length; M++) {
-                    e = w[M];
-                    if (e.distanceTo(p.p) < 100) {
-                        g(e.p, 10);
-                        w.splice(M, 1);
-                        M--;
-                        C += 10
-                    }
-                }
-            }
-            context.beginPath();
-            context.fillStyle = "#00ffcc";
-            context.arc(p.p.x, p.p.y, p.s / 2, 0, Math.PI * 2, true);
-            context.fill();
-            p.p.x += P.x * p.f;
-            p.p.y += P.y * p.f;
-            if (p.p.x < 0 || p.p.y > gameHeight || playerObject.boost != 0) {
-                y.splice(O, 1);
-                O--
-            }
-        }
-        if (w.length < 35 * E) {
-            w.push(F(new Enemy()))
-        }
-        if (y.length < 1 && Math.random() > 0.997 && playerObject.boost == 0) {
-            y.push(F(new Boost()))
-        }
-        for (O = 0; O < H.length; O++) {
-            p = H[O];
-            p.velocity.x += (P.x - p.velocity.x) * 0.04;
-            p.velocity.y += (P.y - p.velocity.y) * 0.04;
-            p.p.x += p.velocity.x;
-            p.p.y += p.velocity.y;
-            p.alpha -= 0.02;
-            context.fillStyle = "rgba(255,255,255," + Math.max(p.alpha, 0) + ")";
-            context.fillRect(p.p.x, p.p.y, 1, 1);
-            if (p.alpha <= 0) {
-                H.splice(O, 1)
-            }
-        }
-        if (activeState) {
-            scoreText = "Score: <span>" + Math.round(C) + "</span>";
-            scoreText += " Time: <span>" + Math.round(((new Date().getTime() - startTime) / 1000) * 100) / 100 + "s</span>";
-            statusBlock.innerHTML = scoreText
-        }
-    }
+    
     function F(L) {
         if (Math.random() > 0.5) {
             L.p.x = Math.random() * gameWidth;
@@ -278,62 +343,3 @@ SnakeGame = new function () {
     }
 };
 
-function Point(x, y) {
-    this.p = {
-        x: x,
-        y: y
-    }
-}
-Point.prototype.distanceTo = function (obj) {
-    var x = obj.x - this.p.x;
-    var y = obj.y - this.p.y;
-    return Math.sqrt(x * x + y * y)
-};
-Point.prototype.clonePosition = function () {
-    return {
-        x: this.p.x,
-        y: this.p.y
-    }
-};
-
-function Player() {
-    this.p = {
-        x: 0,
-        y: 0
-    };
-    this.trail = [];
-    this.s = 8;
-    this.boost = 0
-}
-Player.prototype = new Point();
-
-function Enemy() {
-    this.p = {
-        x: 0,
-        y: 0
-    };
-    this.s = 6 + (Math.random() * 4);
-    this.f = 1 + (Math.random() * 0.4)
-}
-Enemy.prototype = new Point();
-
-function Boost() {
-    this.p = {
-        x: 0,
-        y: 0
-    };
-    this.s = 10 + (Math.random() * 8);
-    this.f = 1 + (Math.random() * 0.4)
-}
-Boost.prototype = new Point();
-
-function Particle() {
-    this.p = {
-        x: 0,
-        y: 0
-    };
-    this.f = 1 + (Math.random() * 0.4);
-    this.color = "#ff0000"
-}
-Particle.prototype = new Point();
-SinuousWorld.init();
