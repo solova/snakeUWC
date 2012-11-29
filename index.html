@@ -6,12 +6,13 @@
         
         <title>index.html</title>
 
+        <link rel="stylesheet" href="css/reset.css" type="text/css">
         <link rel="stylesheet" href="css/styles.css" type="text/css">
-
 
         <script type="text/javascript" charset="utf-8" src="js/lodash.min.js"></script>
 
         <script type="text/javascript" charset="utf-8" src="js/dict.js"></script>
+        <script type="text/javascript" charset="utf-8" src="js/snakeobjects.js"></script>
         <script type="text/javascript" charset="utf-8" src="js/snake2.js"></script>
         <script type="text/javascript" charset="utf-8">
         <!--
@@ -40,14 +41,31 @@
         </div>
     </div> -->
 
-    <canvas id="snake-board"></canvas>
-    <div id="status" style="position: absolute"></div>
-    <div id="controls">
-        <div id="snake-words" class="well"></div>
-        <div id="snake-letters" class="well"></div>
-        <div id="snake-info" class="well">
+<!--     <div id="startup" class="modal">
+        <h3>Гра у змійку</h3>
+        <div class="startup-body">
+             <p><strong>Вітаю гравця.</strong> Це модифікація відомої гри &laquo;змійка&raquo;. Тобі треба не тільки вирастити якомога довшу змію, але й збирати замість яблук букви, та сполучати їх у слова. Кожна зібрана буква поміщується у чергу що ти бачиш нижче. Якщо змія виходить за межі ігрового майданчика, кусає саму себе чи накопичує більш ніж 20 букв у черзі &mdash; гра припиняється. Кожна зібрана буква дає тобі 1 очко. Кожне слово дає по 10 очок за букву. Керувати треба стрілочками на клавіатурі. <code>Space</code> надає прискорення. </p>
+
+            <p>Користувачі, що запустили гру на пристрої з сенсорним екраном можуть змінювати напрям змійки торкаючись лівої або правої половини екрану.</p>
+
+            <p>Якщо тобі все зрозуміло й ти готова чи готовий до гри &mdash; просто обери мову.</p>
+
+            <img src="img/english.png" height="100" width="190" alt="" title="English" />
+            <img src="img/russian.png" alt="" height="100" width="150" title="Русский язык" />
+            <img src="img/ukrainian.png" alt="" height="100" width="150" title="Украинский язык" />
+
         </div>
-    </div>
+        
+        
+        
+        <div class="clear"></div>
+    </div> -->
+
+    <canvas id="snake-board"></canvas>
+
+    <div id="statistics" style="position: absolute"></div>
+    <div id="snake-words"></div>
+    <div id="snake-letters"><span class="badge">12</span><span class="badge">C</span></div>
 
     </body>
 </html>    
