@@ -10,7 +10,7 @@ var snakegame = (function () {
     })();
     //
 
-    //клавіші, що обробляє документ
+    //processed keys
     var keys = {
         32: 'space',
         37: 'left',
@@ -20,10 +20,10 @@ var snakegame = (function () {
     };
     var snake = {};
 
-    //можливі кольори літер
+    //letters colors
     var colors = ['Red', 'Blue', 'DarkBlue', 'Orange', 'Purple', 'Brown', 'Maroon', 'Green'];
 
-    //underscore-шаблони
+    //underscore-templates
     var infoTemplate = '<h3 id="snake-info-scores"><%=scores%> (рекорд &mdash; <%=record%>)</h3>'
                      + '<p>Змія має довжину <%=len%></p>'
                      + '<p>Змія рухається зі швидкістю <span id="snake-info-speed"><%=speed%></span> у.о.</p>'
@@ -49,7 +49,7 @@ var snakegame = (function () {
     var userwords = [];
     var queue     = [];
 
-    //літери алфавіту, за частотою вживання
+    //letters by freq
     var alphabet = ['О', 'Н', 'А', 'І', 'И', 'Т', 'В', 'Р', 'Е', 'С', 'К', 'Д', 'У', 'Л', 'П', 'М', 'Я', 'З', 'Ь', 'Г', 'Б', 'Ч', 'Х', 'Й', 'Ц', 'Ю', 'Є', 'Ї', 'Ж', 'Ф', 'Ш', 'Щ'];
     var special = ['↩','⇆', '↶', '↷','><'];
     
@@ -67,7 +67,7 @@ var snakegame = (function () {
     }
 
     /**
-     * функція перевірки обїектів на зіткнення
+     * intersections test
        @return bool
      */
     var hittest = function (object1, object2) {
@@ -75,7 +75,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція отримання поточного рекорду
+     * get current record
        @return int
      */
     var getRecord = function(){
@@ -108,7 +108,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція виведення статистичної інформації, під час гри
+     * show statistic
        @return int
      */
     var info = function () {
@@ -161,9 +161,9 @@ var snakegame = (function () {
         }
     };
 
-    var addRandomLetterFunc = null; //handle для setInterval
+    var addRandomLetterFunc = null; //handle for setInterval
     /**
-     * функція додавання літери на гральне поле
+     * add a letter to the field
        @TODO: refactoring
      */
     var addRandomLetter = function () {
@@ -174,7 +174,7 @@ var snakegame = (function () {
         var colorIndex  = _.random(colors.length - 1);
         
         if (letterIndex < alphabet.length){ //not special
-            letterIndex = Math.floor(letterIndex * Math.random()); // збільшуємо частоту літер, що в початку масиву
+            letterIndex = Math.floor(letterIndex * Math.random()); // increase letter freq
         }
 
         letters.push({
@@ -186,7 +186,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція первірки наявності слова у словнику та коректування списку слів, що зібрав гравець
+     *check existed words
      */
     var checkWords = function () {
         if (queue.length > 1) {
@@ -206,7 +206,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція закінчення гри
+     * end game function
      */
     var gameover = function () {
         snake.status = 0;
@@ -215,7 +215,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція оновлення координат
+     * coordinates refresh
      */
     var update = function () {
         var time = (new Date()).getTime();
@@ -279,7 +279,7 @@ var snakegame = (function () {
     }
 
     /**
-     * loop-функція
+     * loop-function
      */
     var animate = function () {
         // console.timeEnd("animate");
@@ -299,7 +299,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція додавання літери до з'їдених
+     * add letters to eated
      */
     var eatLetters = function (indexes) {
         var changes = false;
@@ -328,7 +328,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція відмальовки літер
+     * letters render
      */
     var drawLetters = function (context) {
         _.each(letters, function (letter, index) {
@@ -341,7 +341,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція відмальовки літер
+     * snake render
      */
     var drawSnake = function (context) {
         var segments = snake.segments;
@@ -362,7 +362,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція збросу налаштунок
+     * reset all variables to init state
      */
     var reset = function () {
 
@@ -400,7 +400,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція початку гри
+     * begin game
      */
     var start = function () {
 
@@ -411,7 +411,7 @@ var snakegame = (function () {
     };
 
     /**
-     * функція прискорення
+     * boost function
      */
     var boost = _.throttle(function(){
         snake.speed += 50;
